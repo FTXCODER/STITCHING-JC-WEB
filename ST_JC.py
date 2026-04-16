@@ -149,49 +149,49 @@ def load_data():
 df = load_data()
 
 # -------------------------------
-# CLEAN COLUMNS
+# CLEAN
 # -------------------------------
 df.columns = df.columns.str.strip()
 df = df.loc[:, ~df.columns.duplicated()]
 
 # -------------------------------
-# COLUMN GROUPS (YOUR LOGIC)
+# COLUMN INDEX GROUPS (IMPORTANT FIX)
 # -------------------------------
 groups = [
-    ("M", "N", "O"),
-    ("U", "V", "W"),
-    ("AC", "AD", "AE"),
-    ("AK", "AL", "AM"),
-    ("AS", "AT", "AU"),
-    ("BA", "BB", "BC"),
-    ("BI", "BJ", "BK"),
-    ("BQ", "BR", "BS"),
-    ("BY", "BZ", "CA"),
-    ("CG", "CH", "CI"),
-    ("CO", "CP", "CQ"),
-    ("CW", "CX", "CY"),
-    ("DE", "DF", "DG"),
-    ("DM", "DN", "DO"),
-    ("DU", "DV", "DW"),
-    ("EC", "ED", "EE"),
-    ("EK", "EL", "EM"),
-    ("ES", "ET", "EU"),
-    ("FA", "FB", "FC"),
-    ("FI", "FJ", "FK"),
-    ("FQ", "FR", "FS"),
-    ("FY", "FZ", "GA"),
-    ("GG", "GH", "GI"),
-    ("GO", "GP", "GQ"),
-    ("GW", "GX", "GY")
+    (12,13,14),   # M,N,O
+    (20,21,22),   # U,V,W
+    (28,29,30),   # AC,AD,AE
+    (36,37,38),   # AK,AL,AM
+    (44,45,46),   # AS,AT,AU
+    (52,53,54),   # BA,BB,BC
+    (60,61,62),   # BI,BJ,BK
+    (68,69,70),   # BQ,BR,BS
+    (76,77,78),   # BY,BZ,CA
+    (84,85,86),   # CG,CH,CI
+    (92,93,94),   # CO,CP,CQ
+    (100,101,102),# CW,CX,CY
+    (108,109,110),
+    (116,117,118),
+    (124,125,126),
+    (132,133,134),
+    (140,141,142),
+    (148,149,150),
+    (156,157,158),
+    (164,165,166),
+    (172,173,174),
+    (180,181,182),
+    (188,189,190),
+    (196,197,198),
+    (204,205,206)
 ]
 
 # -------------------------------
 # BASE COLUMNS (A–G)
 # -------------------------------
-base_cols = df.columns[:7]  # A to G
+base_cols = df.columns[:7]
 
 # -------------------------------
-# ROW BIND LOGIC
+# ROW BIND
 # -------------------------------
 final_rows = []
 
@@ -199,15 +199,12 @@ for _, row in df.iterrows():
     base_data = row[base_cols].to_dict()
 
     for g in groups:
-        col1, col2, col3 = g
+        try:
+            doer = row.iloc[g[0]]
+            planned = row.iloc[g[1]]
+            actual = row.iloc[g[2]]
 
-        if col1 in df.columns and col2 in df.columns and col3 in df.columns:
-            doer = row[col1]
-            planned = row[col2]
-            actual = row[col3]
-
-            # Skip empty groups
-            if doer == "" and planned == "" and actual == "":
+            if str(doer).strip() == "" and str(planned).strip() == "" and str(actual).strip() == "":
                 continue
 
             new_row = base_data.copy()
@@ -217,43 +214,31 @@ for _, row in df.iterrows():
 
             final_rows.append(new_row)
 
-# Create final dataframe
+        except:
+            continue
+
 final_df = pd.DataFrame(final_rows)
 
 # -------------------------------
-# DATE PARSING
+# DATE PARSE
 # -------------------------------
 if "PLANNED" in final_df.columns:
-    final_df["PLANNED"] = pd.to_datetime(
-        final_df["PLANNED"],
-        format="%d-%m-%Y %H:%M",
-        errors="coerce"
-    )
+    final_df["PLANNED"] = pd.to_datetime(final_df["PLANNED"], format="%d-%m-%Y %H:%M", errors="coerce")
 
 if "ACTUAL" in final_df.columns:
-    final_df["ACTUAL"] = pd.to_datetime(
-        final_df["ACTUAL"],
-        format="%d-%m-%Y %H:%M",
-        errors="coerce"
-    )
-
-if "TIMESTAMP" in final_df.columns:
-    final_df["TIMESTAMP"] = pd.to_datetime(
-        final_df["TIMESTAMP"],
-        format="%d/%m/%Y %H:%M:%S",
-        errors="coerce"
-    )
+    final_df["ACTUAL"] = pd.to_datetime(final_df["ACTUAL"], format="%d-%m-%Y %H:%M", errors="coerce")
 
 # -------------------------------
 # UI
 # -------------------------------
-st.set_page_config(page_title="Row Bind View", layout="wide")
-
+st.set_page_config(layout="wide")
 st.title("📊 ST JC FMS - Row Bind View")
 
-# -------------------------------
+# DEBUG (REMOVE LATER)
+# st.write(df.shape)
+# st.write(df.columns)
+
 # FILTER
-# -------------------------------
 if "DOER" in final_df.columns:
     doer_list = ["ALL"] + sorted(final_df["DOER"].dropna().unique())
     selected_doer = st.selectbox("Filter by DOER", doer_list)
@@ -261,9 +246,6 @@ if "DOER" in final_df.columns:
     if selected_doer != "ALL":
         final_df = final_df[final_df["DOER"] == selected_doer]
 
-# -------------------------------
 # DISPLAY
-# -------------------------------
 st.markdown(f"### Total Records: {len(final_df)}")
-
 st.dataframe(final_df, use_container_width=True, height=600)
