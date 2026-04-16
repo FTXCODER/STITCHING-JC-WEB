@@ -6,7 +6,7 @@ from google.oauth2.service_account import Credentials
 # -------------------------------
 # CONFIG
 # -------------------------------
-SHEET_NAME = "YOUR GOOGLE SHEET NAME"
+SHEET_ID = "13W7_scwOIY_H0z1a2JPzKC5IWQWsaFiSeqIE9UURgPQ"
 WORKSHEET_NAME = "ST JC FMS"
 
 # -------------------------------
@@ -18,7 +18,7 @@ def connect_gsheet():
         scopes=["https://www.googleapis.com/auth/spreadsheets"]
     )
     client = gspread.authorize(creds)
-    return client.open(SHEET_NAME)
+    return client.open_by_key(SHEET_ID)
 
 # -------------------------------
 # LOAD DATA
@@ -30,8 +30,9 @@ def load_data():
 
     data = ws.get_all_values()
 
-    header = data[5]   # Row 6
-    rows = data[6:]    # Row 7 onwards
+    # Header is row 6 (index 5)
+    header = data[5]
+    rows = data[6:]
 
     df = pd.DataFrame(rows, columns=header)
 
@@ -53,6 +54,8 @@ for col in date_cols:
 # -------------------------------
 # UI
 # -------------------------------
+st.set_page_config(page_title="ST JC FMS", layout="wide")
+
 st.title("📊 ST JC FMS Dashboard")
 
 # -------------------------------
@@ -69,4 +72,9 @@ if "DOER" in df.columns:
 # TABLE DISPLAY
 # -------------------------------
 st.markdown(f"### Total Records: {len(df)}")
-st.dataframe(df, use_container_width=True, height=500)
+
+st.dataframe(
+    df,
+    use_container_width=True,
+    height=600
+)
