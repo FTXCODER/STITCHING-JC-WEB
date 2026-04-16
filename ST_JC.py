@@ -30,7 +30,7 @@ def load_data():
 
     data = ws.get_all_values()
 
-    # Header is row 6 (index 5)
+    # Header row (Row 6)
     header = data[5]
     rows = data[6:]
 
@@ -41,35 +41,49 @@ def load_data():
 df = load_data()
 
 # -------------------------------
-# CLEAN DATA
+# CLEAN COLUMN NAMES
 # -------------------------------
 df.columns = df.columns.str.strip()
 
-# Convert date columns safely
-date_cols = ["TIMESTAMP", "PLANNED", "ACTUAL"]
-for col in date_cols:
-    if col in df.columns:
-        df[col] = pd.to_datetime(df[col], errors="coerce")
+# Remove duplicate columns (IMPORTANT FIX)
+df = df.loc[:, ~df.columns.duplicated()]
 
 # -------------------------------
-# UI
+# DEBUG (optional - remove later)
+# -------------------------------
+# st.write(df.columns.tolist())
+
+# -------------------------------
+# SAFE DATE CONVERSION
+# -------------------------------
+date_cols = ["TIMESTAMP", "PLANNED", "ACTUAL"]
+
+for col in date_cols:
+    if col in df.columns:
+        try:
+            df[col] = pd.to_datetime(df[col], errors="coerce")
+        except Exception:
+            pass
+
+# -------------------------------
+# UI CONFIG
 # -------------------------------
 st.set_page_config(page_title="ST JC FMS", layout="wide")
 
 st.title("📊 ST JC FMS Dashboard")
 
 # -------------------------------
-# FILTER: DOER
+# FILTER: DOER (Column M)
 # -------------------------------
 if "DOER" in df.columns:
-    doer_options = ["ALL"] + sorted(df["DOER"].dropna().unique())
-    selected_doer = st.selectbox("Filter by DOER", doer_options)
+    doer_list = ["ALL"] + sorted(df["DOER"].dropna().unique())
+    selected_doer = st.selectbox("Filter by DOER", doer_list)
 
     if selected_doer != "ALL":
         df = df[df["DOER"] == selected_doer]
 
 # -------------------------------
-# TABLE DISPLAY
+# DISPLAY TABLE
 # -------------------------------
 st.markdown(f"### Total Records: {len(df)}")
 
