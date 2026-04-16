@@ -45,25 +45,36 @@ df = load_data()
 # -------------------------------
 df.columns = df.columns.str.strip()
 
-# Remove duplicate columns (IMPORTANT FIX)
+# Remove duplicate columns
 df = df.loc[:, ~df.columns.duplicated()]
 
 # -------------------------------
-# DEBUG (optional - remove later)
+# SAFE DATE PARSING (FIXED)
 # -------------------------------
-# st.write(df.columns.tolist())
 
-# -------------------------------
-# SAFE DATE CONVERSION
-# -------------------------------
-date_cols = ["TIMESTAMP", "PLANNED", "ACTUAL"]
+# TIMESTAMP (Column B → dd/mm/yyyy hh:mm:ss)
+if "TIMESTAMP" in df.columns:
+    df["TIMESTAMP"] = pd.to_datetime(
+        df["TIMESTAMP"],
+        format="%d/%m/%Y %H:%M:%S",
+        errors="coerce"
+    )
 
-for col in date_cols:
-    if col in df.columns:
-        try:
-            df[col] = pd.to_datetime(df[col], errors="coerce")
-        except Exception:
-            pass
+# PLANNED (Column N → dd-mm-yyyy hh:mm)
+if "PLANNED" in df.columns:
+    df["PLANNED"] = pd.to_datetime(
+        df["PLANNED"],
+        format="%d-%m-%Y %H:%M",
+        errors="coerce"
+    )
+
+# ACTUAL (Column O → dd-mm-yyyy hh:mm)
+if "ACTUAL" in df.columns:
+    df["ACTUAL"] = pd.to_datetime(
+        df["ACTUAL"],
+        format="%d-%m-%Y %H:%M",
+        errors="coerce"
+    )
 
 # -------------------------------
 # UI CONFIG
@@ -73,7 +84,7 @@ st.set_page_config(page_title="ST JC FMS", layout="wide")
 st.title("📊 ST JC FMS Dashboard")
 
 # -------------------------------
-# FILTER: DOER (Column M)
+# FILTER: DOER
 # -------------------------------
 if "DOER" in df.columns:
     doer_list = ["ALL"] + sorted(df["DOER"].dropna().unique())
