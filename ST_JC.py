@@ -302,7 +302,12 @@ for i, row in df_f.iterrows():
                 "YES"
             ]]
 
-            STORE_SHEET.update(f"A{next_row}:D{next_row}", data)
+            # ✅ KEY FIX HERE
+            STORE_SHEET.update(
+                f"A{next_row}:D{next_row}",
+                data,
+                value_input_option="USER_ENTERED"
+            )
 
             st.session_state.submitted.add(key)
 
