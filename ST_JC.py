@@ -163,7 +163,7 @@ client = gspread.authorize(creds)
 
 SHEET_ID = "13W7_scwOIY_H0z1a2JPzKC5IWQWsaFiSeqIE9UURgPQ"
 MAIN_SHEET = client.open_by_key(SHEET_ID).worksheet("ST JC FMS")
-STORE_SHEET = client.open_by_key(SHEET_ID).worksheet("STORE")
+STORE_SHEET = client.open_by_key(SHEET_ID).worksheet("TASK UPDATE")
 
 # ---------------------------
 # LOAD DATA
