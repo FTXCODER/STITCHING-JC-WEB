@@ -113,6 +113,7 @@ import pandas as pd
 import gspread
 from google.oauth2.service_account import Credentials
 from datetime import datetime
+import pytz
 
 # ---------------------------
 # PAGE CONFIG
@@ -162,7 +163,9 @@ creds = Credentials.from_service_account_info(
 
 client = gspread.authorize(creds)
 
-# ✅ UPDATED SHEET
+# ---------------------------
+# SHEETS
+# ---------------------------
 SHEET_ID = "13W7_scwOIY_H0z1a2JPzKC5IWQWsaFiSeqIE9UURgPQ"
 MAIN_SHEET = client.open_by_key(SHEET_ID).worksheet("ST JC FMS")
 STORE_SHEET = client.open_by_key(SHEET_ID).worksheet("TASK UPDATE")
@@ -235,7 +238,7 @@ if final_df.empty:
 st.success(f"Total Pending Rows: {len(final_df)}")
 
 # ---------------------------
-# FILTERS (DOER + STEP)
+# FILTERS
 # ---------------------------
 c1, c2 = st.columns(2)
 
@@ -286,19 +289,23 @@ for i, row in df_f.iterrows():
     else:
         if cols[9].button("SUBMIT", key=f"s{i}"):
 
+            # ✅ IST TIME FIX
+            ist = pytz.timezone("Asia/Kolkata")
+            current_time = datetime.now(ist).strftime("%d-%m-%Y %H:%M:%S")
+
             # ✅ FIND NEXT ROW BASED ON COLUMN A
             col_a = STORE_SHEET.col_values(1)
             next_row = len(col_a) + 1
 
-            # ✅ PREPARE DATA (A:D)
+            # ✅ DATA (A:D)
             data = [[
-                datetime.now().strftime("%d-%m-%Y %H:%M:%S"),
+                current_time,
                 row["JOB SERIES"],
                 row["STEP NO"],
                 "YES"
             ]]
 
-            # ✅ WRITE EXACTLY IN A:D
+            # ✅ WRITE
             STORE_SHEET.update(f"A{next_row}:D{next_row}", data)
 
             st.session_state.submitted.add(key)
