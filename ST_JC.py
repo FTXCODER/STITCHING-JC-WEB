@@ -289,11 +289,11 @@ for i, row in df_f.iterrows():
     else:
         if cols[9].button("SUBMIT", key=f"s{i}"):
 
-            # ✅ IST TIME FIX
+            # ✅ IST TIME (REAL DATETIME - NO ' ISSUE)
             ist = pytz.timezone("Asia/Kolkata")
-            current_time = datetime.now(ist).strftime("%d-%m-%Y %H:%M:%S")
+            current_time = datetime.now(ist)
 
-            # ✅ FIND NEXT ROW BASED ON COLUMN A
+            # ✅ NEXT ROW BASED ON COLUMN A
             col_a = STORE_SHEET.col_values(1)
             next_row = len(col_a) + 1
 
