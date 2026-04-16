@@ -127,7 +127,7 @@ st.markdown("""
 .header-row {
     position: sticky;
     top: 0;
-    background-color: #fafafa;
+    background-color: #0E1117;
     z-index: 999;
     padding: 10px 0;
     border-bottom: 2px solid #444;
@@ -148,7 +148,7 @@ div.stButton > button {
 """, unsafe_allow_html=True)
 
 # ---------------------------
-# GOOGLE SHEETS
+# GOOGLE SHEETS CONNECTION
 # ---------------------------
 scope = [
     "https://www.googleapis.com/auth/spreadsheets",
@@ -162,6 +162,7 @@ creds = Credentials.from_service_account_info(
 
 client = gspread.authorize(creds)
 
+# ✅ UPDATED SHEET
 SHEET_ID = "13W7_scwOIY_H0z1a2JPzKC5IWQWsaFiSeqIE9UURgPQ"
 MAIN_SHEET = client.open_by_key(SHEET_ID).worksheet("ST JC FMS")
 STORE_SHEET = client.open_by_key(SHEET_ID).worksheet("TASK UPDATE")
@@ -180,7 +181,7 @@ def load_data():
 df = load_data()
 
 # ---------------------------
-# PROCESS BLOCK
+# PROCESS FUNCTION
 # ---------------------------
 def process_block(df, doer_i, planned_i, actual_i, step_name):
     temp = df[[0,2,3,4,5,6,doer_i,planned_i,actual_i]].copy()
@@ -234,7 +235,7 @@ if final_df.empty:
 st.success(f"Total Pending Rows: {len(final_df)}")
 
 # ---------------------------
-# FILTERS (ONLY DOER + STEP)
+# FILTERS (DOER + STEP)
 # ---------------------------
 c1, c2 = st.columns(2)
 
@@ -285,14 +286,24 @@ for i, row in df_f.iterrows():
     else:
         if cols[9].button("SUBMIT", key=f"s{i}"):
 
-            STORE_SHEET.append_row([
+            # ✅ FIND NEXT ROW BASED ON COLUMN A
+            col_a = STORE_SHEET.col_values(1)
+            next_row = len(col_a) + 1
+
+            # ✅ PREPARE DATA (A:D)
+            data = [[
                 datetime.now().strftime("%d-%m-%Y %H:%M:%S"),
                 row["JOB SERIES"],
                 row["STEP NO"],
                 "YES"
-            ])
+            ]]
+
+            # ✅ WRITE EXACTLY IN A:D
+            STORE_SHEET.update(f"A{next_row}:D{next_row}", data)
 
             st.session_state.submitted.add(key)
+
             st.success(f"Submitted {row['JOB SERIES']} - {row['STEP NO']}")
+
             st.cache_data.clear()
             st.rerun()
